@@ -2,6 +2,8 @@
 
 FROM python:3
 
+RUN apt update && apt upgrade -yq
+
 WORKDIR /usr/src/app
 
 COPY . .
