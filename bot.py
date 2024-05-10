@@ -15,7 +15,14 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-emojis = ["😱", "😀", "🤣", "👌", "🗿", "🤨", "💀", "😤", "🙈"]
+emojis = ["", "😀", "🤣", "👌", "🗿", "🤨", "💀", "😤", "🙈"]
+
+
+# remove unprintable characters from token, causes problems in my raspberry pi for some reason :D
+def sanitize_string(input_string):
+    sanitized_string = input_string.strip()
+    sanitized_string = "".join(char for char in sanitized_string if char.isprintable())
+    return sanitized_string
 
 
 async def milloin_varaslahto(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -59,7 +66,7 @@ async def daily_capybara(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
-    application = ApplicationBuilder().token(token).build()
+    application = ApplicationBuilder().token(sanitize_string(token)).build()
 
     varaslahto_handler = CommandHandler("milloin_varaslahto", milloin_varaslahto)
     headstart_handler = CommandHandler("when_headstart", when_headstart)
