@@ -3,19 +3,23 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from datetime import datetime
 import random
+import pytz
 
 capy_api_url = "https://api.capy.lol/v1/capybara/"
 
 with open("token.txt", "r") as file:
     token = file.read()
 
-varaslahto_date = datetime(2024, 8, 18)
+finland_timezone = "Europe/Helsinki"
+timezone = pytz.timezone(finland_timezone)
+
+varaslahto_date = datetime(2024, 8, 18, 12, tzinfo=timezone)  # August 18 2024 at 12
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-emojis = ["", "😀", "🤣", "👌", "🗿", "🤨", "💀", "😤", "🙈"]
+emojis = ["😊", "😀", "🤣", "👌", "🗿", "🤨", "💀", "😤", "🙈"]
 
 
 # remove unprintable characters from token, causes problems in my raspberry pi for some reason :D
@@ -25,14 +29,19 @@ def sanitize_string(input_string):
     return sanitized_string
 
 
-async def milloin_varaslahto(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    current_date = datetime.now()
+def get_time_left():
+    current_date = datetime.now(tz=timezone)
     time_until_varaslahto = varaslahto_date - current_date
     days = time_until_varaslahto.days
     hours = time_until_varaslahto.seconds // 3600
+    return [days, hours]
 
-    msg_text = f"❗Tietokillan varaslähtö järjestetään tänä vuonna 18.8.2024!❗\n Varaslähtöön on siis aikaa {days} päivää ja {hours} tuntia!"
+
+async def milloin_varaslahto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    time_left = get_time_left()
+
+    msg_text = f"❗Tietokillan varaslähtö järjestetään tänä vuonna 18.8.2024!❗\nVaraslähtöön on siis aikaa {time_left[0]} päivää ja {time_left[1]} tuntia! "
     emoji_number = random.randint(0, 10)
     for i in range(emoji_number):
         msg_text += emojis[random.randint(0, len(emojis) - 1)]
@@ -42,12 +51,9 @@ async def milloin_varaslahto(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def when_headstart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    current_date = datetime.now()
-    time_until_varaslahto = varaslahto_date - current_date
-    days = time_until_varaslahto.days
-    hours = time_until_varaslahto.seconds // 3600
+    time_left = get_time_left()
 
-    msg_text = f"The headstart of Tietokilta will be held on 18.8.2024!!!! There are {days} days and {hours} hours left! "
+    msg_text = f"❗The headstart of Tietokilta will be held on 18.8.2024!❗\nThere are {time_left[0]} days and {time_left[1]} hours left! "
     emoji_number = random.randint(0, 10)
     for i in range(emoji_number):
         msg_text += emojis[random.randint(0, len(emojis) - 1)]
@@ -56,7 +62,7 @@ async def when_headstart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def daily_capybara(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    current_date = datetime.now()
+    current_date = datetime.now(timezone)
     time_until_varaslahto = varaslahto_date - current_date
     idx = time_until_varaslahto.days
     image_url = capy_api_url + str(idx)
